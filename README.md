@@ -1,1 +1,1 @@
-# FPS-game-DualPanto
+# First-Person-Shooter for DualPanto
