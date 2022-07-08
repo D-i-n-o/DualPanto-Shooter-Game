@@ -52,7 +52,7 @@ public class WindowsSpeechOut : SpeechBase
         {
             theVoice = this;
             initSpeech();
-            Debug.Log("[WinSpeech]:Initialized");
+            //Debug.Log("[WinSpeech]:Initialized");
         }
     }
     public override void Stop()

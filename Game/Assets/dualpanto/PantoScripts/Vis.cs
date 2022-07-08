@@ -13,15 +13,16 @@ public class Vis : MonoBehaviour
     void Awake()
     {
         views = new LayerMask[] { blindView, enhancedBlindView, developmentView };
+        Camera.main.cullingMask = views[2];
     }
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.B))
-        {
-            current++;
-            if (current > 2) current = 0;
-            Camera.main.cullingMask = views[current];
-        }
+        //if (Input.GetKeyDown(KeyCode.B))
+        //{
+        //    current++;
+        //    if (current > 2) current = 0;
+        //    Camera.main.cullingMask = views[current];
+        //}
     }
 }
