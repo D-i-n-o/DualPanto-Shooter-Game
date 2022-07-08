@@ -39,7 +39,7 @@ public class Combat : MonoBehaviour
     {
         Vector3 aimDirection = GetComponent<PlayerMovement>().GetAimDirection();
         // Instantiate arrow to firepoint and adjust arrow rotation to player rotation
-        GameObject arrow = Instantiate(ArrowPrefab, firePoint.position, Quaternion.Euler(new Vector3(90f, 0f, 0f)));
+        GameObject arrow = Instantiate(ArrowPrefab, firePoint.position, Quaternion.Euler(transform.eulerAngles));
 
         Rigidbody rb = arrow.GetComponent<Rigidbody>();
         rb.AddForce(aimDirection * velocity, ForceMode.Impulse);

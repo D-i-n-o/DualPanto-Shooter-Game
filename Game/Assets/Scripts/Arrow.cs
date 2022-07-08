@@ -14,8 +14,8 @@ public class Arrow : MonoBehaviour
 
     void Start()
     {
-        Vector3 rotateBy = GameObject.Find("Player").GetComponent<Transform>().eulerAngles;
-        transform.eulerAngles = rotateBy;
+        //Vector3 rotateBy = GameObject.Find("Player").GetComponent<Transform>().eulerAngles;
+        //transform.eulerAngles = rotateBy;
     }
 
     void Update()
