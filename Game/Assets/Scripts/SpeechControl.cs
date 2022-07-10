@@ -3,61 +3,89 @@ using System.Collections.Generic;
 using UnityEngine;
 using SpeechIO;
 using DualPantoFramework;
+using static Combat.combatMode;
+
+
 
 
 public class SpeechControl : MonoBehaviour
 {
+    public enum mapToAudio
+    {
+        EQUIP_SWORD,
+        EQUIP_BOW,
+        EQUIP_SHIELD,
+        ARROW_SHOT,
+        DRYFIRE,
+        RELOAD,
+        HIT,
+        ENEMYDEATH,
+        INTRO1,
+        INTRO2,
+        INTRO3,
+        LEVEL_CLEAR,
+        VICTORY,
+        GOODJOB,
+        STARTJINGLE,
+        GAMEOVER,
+        PLAYERDEATH,
+    }
+    private AudioSource[] audioSrc;
     private SpeechIn speechRecognition;
     private GameObject player;
-    private AudioSource[] audioSources;
 
-    enum mapToAudioSrc{
-        DRAW_SWORD,
-        DRAW_BOW,
-        EQUIP_SHIELD,
-        HIT,
-        INTRO,
-        END
-    }
     void Start()
     {
-        audioSources = GetComponents<AudioSource>();
+        audioSrc = GetComponents<AudioSource>();          // order of inspector (reliable)
         speechRecognition = new SpeechIn(onSpeechRecognized);
-        speechRecognition.StartListening(new string[] { "Schwert", "Sword", "Bow", "Bogen", "Schild", "Shield", "Pause", "Resume"});
+        speechRecognition.StartListening(new string[] { "Schwert", "Sword", "Bow", "Bogen", "Schild", "Shield", "Reload", "Nachladen"});
         player = GameObject.Find("Player");
        
     }
 
-    // Update is called once per frame
-    void Update()
+    
+
+    public IEnumerator PlayEndClips()
     {
-        //if (GetComponent<GameControl>().HasGameFinished()){
-        //    audioSources[(int)mapToAudioSrc.END].Play();
-        //}
+        speechRecognition.StopListening();
+        yield return new WaitForSeconds(PlayClip(mapToAudio.GOODJOB));
+        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(PlayClip(mapToAudio.VICTORY));
+        yield return new WaitForSeconds(PlayClip(mapToAudio.LEVEL_CLEAR) + 1);
+        Destroy(gameObject);
     }
 
-    public void PlaySound(string soundName)
+
+    // play clips triggered by non-speech-input events and return its length in seconds
+    public float PlayClip(mapToAudio soundName)
     {
-        switch (soundName){
-            case "ARROW HIT": /*audioSources[(int)mapToAudioSrc.HIT].Play();*/ break;
-            default: break;
-        }
+        Debug.Log(soundName);
+        audioSrc[(int)soundName].Play();
+        return audioSrc[(int)soundName].clip.length;
     }
 
+    
     void onSpeechRecognized(string command)
     {
-        Debug.Log(command);
-        //if(command == "Bow" || command == "Bogen"){
-        //    player.GetComponent<Combat>().SwitchMode((playerMode.Mode)0);
-        //    audioSources[(int)mapToAudioSrc.DRAW_BOW].Play();
-        //}
-        //else if(command == "Sword" || command == "Schwert" ){
-        //    audioSources[(int)mapToAudioSrc.DRAW_SWORD].Play();
-        //    player.GetComponent<PlayerAction>().SwitchMode((PlayerAction.Mode)1);
-        //}
-        //else if(command == "Shild" || command == "Schild") {
-        //    audioSources[(int)mapToAudioSrc.EQUIP_SHIELD].Play();
-        //    player.GetComponent<PlayerAction>().SwitchMode((PlayerAction.Mode)2);
-        //}
+        switch (command) {
+            case "Bow": case "Bogen":
+                player.GetComponent<Combat>().SwitchMode(Combat.combatMode.LONG_RANGE);
+                audioSrc[(int)mapToAudio.EQUIP_BOW].Play();
+                break;
+            case "Sword": case "Schwert":
+                audioSrc[(int)mapToAudio.EQUIP_SWORD].Play();
+                player.GetComponent<Combat>().SwitchMode(Combat.combatMode.CLOSE_RANGE);
+                break;
+            case "Shild": case "Schild":
+                audioSrc[(int)mapToAudio.EQUIP_SHIELD].Play();
+                player.GetComponent<Combat>().SwitchMode(Combat.combatMode.SHIELD);
+                break;
+            case "Reload": case "Nachladen":
+                audioSrc[(int)mapToAudio.RELOAD].Play();
+                player.GetComponent<Combat>().Reload();
+                break;
+            case "Burst": case "Burst-Fire": break;
+            default: break;
+        }
     }
 }

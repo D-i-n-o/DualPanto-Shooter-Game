@@ -4,33 +4,74 @@ using System;
 using System.Threading.Tasks;
 using UnityEngine;
 using DualPantoFramework;
+using static SpeechControl.mapToAudio;
 
 public class GameControl : MonoBehaviour
 {
-    private Tuple<float, float> spawnRange_x = new Tuple<float, float>(-11f, 0f);
-    private Tuple<float, float> spawnRange_y = new Tuple<float, float>(-16f, -6f);
-    private int enemyCount = 0;
-    private GameObject enemy;
+    public GameObject enemy;
+    public GameObject playerPrefab;
+
+    private int enemyCount;
+    private PantoHandle upperHandle;
+    private PantoHandle lowerHandle;
+    private Tuple<float, float> spawnRange_x = new Tuple<float, float>(-10f, -4f);
+    private Tuple<float, float> spawnRange_y = new Tuple<float, float>(-18f, -15f);
     private GameObject panto;
-    private bool gameStarted = false;
-    private bool gameFinished = false;
+    private bool gameStarted = false, gameFinished = false;
+    private SpeechControl speech;
+    private GameObject player;
 
-
-    void Start()
+    private void Awake()
     {
-
-        //StartCoroutine(WaitFor(3.0f));
-        //await SpawnWaveOfEnemies(1);
-        panto = GameObject.Find("Panto");
-        gameStarted = true;
-
+        player = GameObject.Find("Player");
     }
-    void Update()
+
+    IEnumerator Start()
     {
-        //if(CountEnemies() == 0)
-        //{
-        //    gameFinished = true;
-        //}
+        panto = GameObject.Find("Panto");
+        upperHandle = panto.GetComponent<UpperHandle>();
+        lowerHandle = panto.GetComponent<LowerHandle>();
+        speech = GetComponent<SpeechControl>();
+
+        StartCoroutine(StartGame());
+        yield return new WaitUntil(() => gameStarted);
+        Debug.Log("Game has started.");
+    }
+
+    private void Update()
+    {
+        
+    }
+
+    // play intro by syncing audio files and handle movement
+    private IEnumerator StartGame()
+    {
+        upperHandle.Freeze();
+        yield return new WaitForSeconds(speech.PlayClip(STARTJINGLE));
+        upperHandle.MoveToPosition(player.transform.position);
+        yield return new WaitForSeconds(speech.PlayClip(INTRO1));
+        upperHandle.Rotate(360f);
+
+        SpawnWaveOfEnemies(1);
+        yield return new WaitForSeconds(speech.PlayClip(INTRO2));
+        yield return new WaitForSeconds(speech.PlayClip(INTRO3));
+        upperHandle.Free();
+        gameStarted = true;
+    }
+
+    public void RegisterEnemyDeath()
+    {
+        lowerHandle.Rotate(360f);
+        if (--enemyCount <= 0) {
+            EndGame();
+        }
+    }
+
+    private void EndGame()
+    {
+        StartCoroutine(speech.PlayEndClips());
+        gameFinished = true;
+        Destroy(player, 2f);
     }
 
     void PauseGame()
@@ -53,12 +94,16 @@ public class GameControl : MonoBehaviour
         return GameObject.FindGameObjectsWithTag("Enemy").Length;
     }
 
-    async Task SpawnWaveOfEnemies(byte amountOfEnemies) 
+    async Task SpawnWaveOfEnemies(int amountOfEnemies)
     {
-        for(int i = 0; i < amountOfEnemies; i++){
-            GameObject _enemy = Instantiate(enemy, GenerateRandomSpawnPosition(), enemy.transform.rotation);
-            if(i == 0) {
-                await panto.GetComponent<LowerHandle>().SwitchTo(_enemy);
+        enemyCount += amountOfEnemies;
+        for (int i = 0; i < amountOfEnemies; i++){
+            GameObject _enemy = Instantiate(enemy, GenerateRandomSpawnPosition(), Quaternion.Euler(90f,0f,0f));
+            if (i == 0){
+                //await lowerHandle.SwitchTo(_enemy);
+                await lowerHandle.MoveToPosition(_enemy.transform.position);
+                lowerHandle.Rotate(360);
+                lowerHandle.Freeze();
             }
         }
     }
@@ -67,7 +112,7 @@ public class GameControl : MonoBehaviour
     {
         float randomPosX = UnityEngine.Random.Range(spawnRange_x.Item1, spawnRange_x.Item2);
         float randomPosY = UnityEngine.Random.Range(spawnRange_y.Item2, spawnRange_y.Item2);
-        Vector3 randomPos = new Vector3(randomPosX, randomPosY, -0.1f);
+        Vector3 randomPos = new Vector3(randomPosX, 0.5f, randomPosY);
         return randomPos;
     }
 

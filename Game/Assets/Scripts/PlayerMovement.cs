@@ -10,14 +10,17 @@ public class PlayerMovement : MonoBehaviour
     private PantoHandle upperHandle;
     private Vector3 aimDirection = new Vector3(0, 0, -1f);
 
-    void Awake()
+    void Start()
     {
         upperHandle = GameObject.Find("Panto").GetComponent<UpperHandle>();
         playerRb = GetComponent<Rigidbody>();
+        //while (!GameObject.Find("GameControl").GetComponent<GameControl>().HasGameStarted());
     }
 
     void FixedUpdate()
     {
+        if (!GameObject.Find("GameControl").GetComponent<GameControl>().HasGameStarted()) return;
+
         MovePlayer();
         aimDirection = RotateAndAim();
     }
@@ -26,7 +29,6 @@ public class PlayerMovement : MonoBehaviour
         Vector3 moveTo = (upperHandle.HandlePosition(transform.position));
         transform.position = new Vector3(moveTo.x, 0.5f, moveTo.z);
         //Debug.Log(transform.forward);
-
     }
 
     Vector3 RotateAndAim()
