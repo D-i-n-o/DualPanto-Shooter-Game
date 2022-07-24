@@ -27,7 +27,7 @@ namespace DualPantoFramework
                 if (Application.platform == RuntimePlatform.WindowsEditor
                     || Application.platform == RuntimePlatform.WindowsPlayer)
                 {
-                    return "//.//COM3";
+                    return "//.//COM6";
                 }
                 else if (Application.platform == RuntimePlatform.OSXEditor
                     || Application.platform == RuntimePlatform.OSXPlayer)
